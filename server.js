@@ -78,7 +78,7 @@ app.get("/producto/:codigo", async (req, res) => {
 
 // Ruta para obtener un producto por su nombre
 app.get("/productos/nombre/:nombre", async (req, res) => {
-  const productoQuery = req.params.nombre;
+  const productoQuery = req.params.nombre.trim();
   let productoNombre = RegExp(productoQuery, "i");
   try {
     // Conexión a la base de datos
@@ -111,7 +111,7 @@ app.get("/productos/nombre/:nombre", async (req, res) => {
 
 // Ruta para obtener todos los productos de una categoria especifica
 app.get("/productos/categoria/:categoria", async (req, res) => {
-  const productoQuery = req.params.categoria;
+  const productoQuery = req.params.categoria.trim();
   let productosCategoria = RegExp(productoQuery, "i");
   try {
     // Conexión a la base de datos
@@ -123,6 +123,7 @@ app.get("/productos/categoria/:categoria", async (req, res) => {
 
     // Obtener la colección de supermercado y buscar los productos por su categoria
     const db = client.db("supermercado");
+    // const producto = await db.collection("supermercado").find({ categoria: {$regex: productoCategoria}}).toArray();
     const producto = await db
       .collection("supermercado")
       .find({ categoria: productosCategoria })
@@ -240,7 +241,7 @@ app.put("/productos/:codigo", async (req, res) => {
 //Ruta para modificar un campo en un recurso
 app.patch("/productos/:codigo", async (req, res) => {
   const codigoProducto = parseInt(req.params.codigo);
-  const nuevosDatos = req.body;
+  const nuevosDatos = parseFloat(req.body.precio);
   try {
     if (!nuevosDatos) {
       res.status(400).send("Error en el formato de datos a crear.");
