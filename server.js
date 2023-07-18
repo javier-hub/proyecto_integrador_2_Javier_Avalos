@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyPaarser = require("body-parser");
 const { connectToDB, disconnectFromMongoDB } = require("./src/mongodb");
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +12,17 @@ supermercado
 */
 
 app.use(express.json());
+
+//app.use(bodyPaarser.json());
+
+app.use(require("body-parser").json());
+
+app.use(function (err, req, res, next) {
+  // atrapo errores en el formato del body recibido
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    res.status(400).send("Error en el formato json enviado");
+  } else next();
+});
 
 // Middleware para establecer el encabezado Content-Type en las respuestas
 app.use((req, res, next) => {
@@ -58,10 +70,10 @@ app.get("/producto/:codigo", async (req, res) => {
     }
 
     // Obtener la colección de supermercado y buscar el producto por su ID
-    const db = client.db("productos");
+    const db = client.db("supermercado");
     const producto = await db
-      .collection("productos")
-      .findOne({ id: productoCodigo });
+      .collection("supermercado")
+      .findOne({ codigo: { $eq: productoCodigo } });
     if (producto) {
       res.json(producto);
     } else {
@@ -145,7 +157,7 @@ app.get("/productos/categoria/:categoria", async (req, res) => {
 
 // Ruta para obtener un producto por su precio
 app.get("/productos/precio/:precio", async (req, res) => {
-  const productoPrecio = parseInt(req.params.precio);
+  const productoPrecio = parseFloat(req.params.precio);
   try {
     // Conexión a la base de datos
     const client = await connectToDB();
@@ -158,7 +170,8 @@ app.get("/productos/precio/:precio", async (req, res) => {
     const db = client.db("supermercado");
     const producto = await db
       .collection("supermercado")
-      .find({ precio: { $gte: productoPrecio } })
+      //.find({ precio: { $gte: productoPrecio } })
+      .find({ precio: { $eq: productoPrecio } })
       .toArray();
 
     if (producto.length > 0) {
@@ -238,13 +251,13 @@ app.put("/productos/:codigo", async (req, res) => {
   }
 });
 
-//Ruta para modificar un campo en un recurso
+//Ruta para modificar el precio de un producto
 app.patch("/productos/:codigo", async (req, res) => {
   const codigoProducto = parseInt(req.params.codigo);
   const nuevosDatos = parseFloat(req.body.precio);
   try {
     if (!nuevosDatos) {
-      res.status(400).send("Error en el formato de datos a crear.");
+      res.status(400).send("Error en el formato del dato a modiicar.");
     }
 
     // Conexión a la base de datos
@@ -258,12 +271,12 @@ app.patch("/productos/:codigo", async (req, res) => {
 
     await collection.updateOne(
       { codigo: codigoProducto },
-      { $set: nuevosDatos }
+      { $set: { precio: nuevosDatos } }
     );
 
     console.log("Producto Modificado");
 
-    res.status(200).send(nuevosDatos);
+    res.status(200).send("Producto modificado con exito!");
   } catch (error) {
     // Manejo de errores al modificar la fruta
     res.status(500).send("Error al modificar el producto");
