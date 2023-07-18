@@ -276,7 +276,7 @@ app.patch("/productos/:codigo", async (req, res) => {
 
     console.log("Producto Modificado");
 
-    res.status(200).send(nuevosDatos);
+    res.status(200).send("Producto modificado con exito!");
   } catch (error) {
     // Manejo de errores al modificar la fruta
     res.status(500).send("Error al modificar el producto");
